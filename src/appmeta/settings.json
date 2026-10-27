@@ -1,0 +1,57 @@
+{
+  "format_version": 1,
+  "version": 1,
+  "fields": {
+    "email": {
+      "type": "string",
+      "label": "Bambu account email",
+      "default": "",
+      "max_length": 128
+    },
+    "password": {
+      "type": "string",
+      "label": "Bambu password",
+      "default": "",
+      "max_length": 128,
+      "sensitive": true
+    },
+    "code": {
+      "type": "string",
+      "label": "Email login code (if asked)",
+      "default": "",
+      "max_length": 16,
+      "sensitive": true
+    },
+    "region": {
+      "type": "enum",
+      "label": "Region",
+      "default": "global",
+      "options": [
+        {
+          "value": "global",
+          "label": "Global"
+        },
+        {
+          "value": "china",
+          "label": "China"
+        }
+      ]
+    },
+    "printer": {
+      "type": "string",
+      "label": "Printer name (blank = first)",
+      "default": "",
+      "max_length": 64
+    },
+    "blink": {
+      "type": "boolean",
+      "label": "Blink LED on finish/fail",
+      "default": true
+    },
+    "animate": {
+      "type": "boolean",
+      "label": "Animate printer",
+      "default": true
+    }
+  }
+}

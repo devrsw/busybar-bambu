@@ -1,0 +1,76 @@
+# Tag 0.1.0 → release with <id>-<version>.tgz attached, whether the tag is pushed from a console or made by a release in the GitHub UI.
+# The tag must match the version in src/appmeta/manifest.json, and the manifest must carry an api_version.
+
+name: Release
+
+on:
+  push:
+    tags: ["[0-9]*.[0-9]*.[0-9]*"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Read the manifest
+        id: manifest
+        run: |
+          version=$(jq -er .version src/appmeta/manifest.json)
+          id=$(jq -er .id src/appmeta/manifest.json)
+          name=$(jq -er .name src/appmeta/manifest.json)
+          api_version=$(jq -r '.api_version // empty' src/appmeta/manifest.json)
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME, manifest $version"
+            exit 1
+          fi
+          if [ -z "$api_version" ]; then
+            echo "::error::src/appmeta/manifest.json has no api_version"
+            exit 1
+          fi
+          echo "archive=$id-$version.tgz" >> "$GITHUB_OUTPUT"
+          # The app's details, put at the top of the release notes.
+          {
+            echo "## App details"
+            echo
+            echo "- Name: $name"
+            echo "- ID: $id"
+            echo "- Version: $version"
+            echo "- API version: $api_version"
+          } > "$RUNNER_TEMP/details.md"
+
+      - run: npm run typecheck
+
+      - run: npm run build -- --tgz-name "{id}-{version}.tgz"
+
+      # A release made from the UI already exists by the time the tag push gets here: attach the archive to it and keep whatever notes were written by hand, below the app's details.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" \
+              "dist/${{ steps.manifest.outputs.archive }}" \
+              --clobber
+            gh release view "$GITHUB_REF_NAME" --json body --jq .body > "$RUNNER_TEMP/body.md"
+            # A re-run finds the details already there.
+            if ! grep -q "^## App details" "$RUNNER_TEMP/body.md"; then
+              { cat "$RUNNER_TEMP/details.md"; echo; cat "$RUNNER_TEMP/body.md"; } > "$RUNNER_TEMP/notes.md"
+              gh release edit "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md"
+            fi
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              "dist/${{ steps.manifest.outputs.archive }}" \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file "$RUNNER_TEMP/details.md" \
+              --generate-notes
+          fi

@@ -1,0 +1,17 @@
+node_modules
+dist
+*.log
+
+# Yarn 2+ install state, rebuilt on every install
+.yarn/install-state.gz
+
+# Vite reads these, and they tend to hold secrets
+.env
+.env.*
+
+# Editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?

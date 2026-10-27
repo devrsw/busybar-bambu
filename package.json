@@ -1,0 +1,27 @@
+{
+  "name": "busybar-bambu",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Bambu Lab print progress via Bambu Cloud",
+  "author": "Scott DeVries",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc",
+    "build": "busy-cli build",
+    "app:install": "busy-cli app install",
+    "app:uninstall": "busy-cli app uninstall",
+    "app:run": "busy-cli app run",
+    "app:stop": "busy-cli app stop"
+  },
+  "engines": {
+    "node": ">=24 <26"
+  },
+  "devDependencies": {
+    "@busy-app/cli": "^0.6.0",
+    "typescript": "~6.0.3",
+    "vite": "8.1.4"
+  },
+  "dependencies": {
+    "@busy-app/busy-lib": "^0.21.1"
+  }
+}
